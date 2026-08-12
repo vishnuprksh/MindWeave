@@ -4,7 +4,7 @@ import { ArrowDownToLine, ChevronDown, FileText, FolderOpen, GitBranch, Lightbul
 import '@xyflow/react/dist/style.css';
 
 type Item = { id: string; text: string; depth: number; parent?: string };
-const starter = `# Product launch strategy\n\n- Research\n  - Interview 5 target customers\n  - Audit competing products\n- Positioning\n  - Define the unique promise\n  - Write the one-line pitch\n- Launch plan\n  - Build the waitlist\n  - Prepare launch content`;
+const starter = `# Product launch strategy\n\n- Define the goal\n  - What outcome are we trying to achieve?\n  - Who is this for?\n- Gather evidence\n  - Interview target customers\n  - Review existing research\n- Make a decision\n  - Compare the strongest options\n  - Choose the next action\n- Ship and learn\n  - Launch a small experiment\n  - Measure the result`;
 
 function parseMarkdown(md: string): Item[] {
   const lines = md.split(/\r?\n/).filter(l => l.trim());
@@ -15,7 +15,7 @@ function parseMarkdown(md: string): Item[] {
     const depth = heading ? 0 : Math.floor((bullet?.[1].length ?? 0) / 2) + 1;
     const text = heading ? heading[1] : bullet![2]; const id = `n${index}`;
     while (stack.length && stack[stack.length - 1].depth >= depth) stack.pop();
-    items.push({ id, text, depth, parent: stack.at(-1)?.id }); stack.push({ depth, id });
+    items.push({ id, text, depth, parent: stack[stack.length - 1]?.id }); stack.push({ depth, id });
   });
   return items.length ? items : [{ id: 'n0', text: 'Untitled map', depth: 0 }];
 }
@@ -45,8 +45,8 @@ function App() {
 
 function Mindmap({ items, selected, select, edit, zoom }: {items: Item[]; selected: string; select:(id:string)=>void; edit:(id:string,text:string)=>void; zoom:number}) {
   const { fitView } = useReactFlow(); const nodes: Node[] = []; const edges: Edge[] = []; const levels = new Map<number, number>(); const pos = new Map<string, {x:number,y:number}>();
-  items.forEach((item, index) => { const same = levels.get(item.depth) ?? 0; levels.set(item.depth, same + 1); const x = item.depth * 260; const y = same * 96 + (item.depth % 2 ? 38 : 0); pos.set(item.id,{x,y}); nodes.push({ id:item.id, type:'mindNode', position:{x,y}, data:{ label:item.text, depth:item.depth, selected:item.id===selected, onSelect:()=>select(item.id), onEdit:(v:string)=>edit(item.id,v) }, sourcePosition:Position.Right, targetPosition:Position.Left }); if(item.parent) edges.push({id:`e-${item.parent}-${item.id}`,source:item.parent,target:item.id,type:'smoothstep',style:{stroke:palette[item.depth%palette.length],strokeWidth:2}}); });
-  return <ReactFlow nodes={nodes} edges={edges} nodeTypes={{ mindNode: MindNode }} fitView onInit={()=>fitView({padding:.2})} minZoom={.5} maxZoom={1.5} zoomOnScroll={false} panOnScroll nodesDraggable={false} proOptions={{hideAttribution:true}}><Background color="#29313c" gap={28} size={1}/><MiniMap pannable zoomable nodeColor={n=>palette[(n.data?.depth ?? 0)%palette.length]} maskColor="rgba(15,20,28,.75)"/><Controls showInteractive={false}/></ReactFlow>
+  items.forEach((item, index) => { const same = levels.get(item.depth) ?? 0; levels.set(item.depth, same + 1); const x = item.depth * 285; const y = same * 112 + (item.depth % 2 ? 28 : 0); pos.set(item.id,{x,y}); nodes.push({ id:item.id, type:'mindNode', position:{x,y}, data:{ label:item.text, depth:item.depth, selected:item.id===selected, onSelect:()=>select(item.id), onEdit:(v:string)=>edit(item.id,v) }, sourcePosition:Position.Right, targetPosition:Position.Left }); if(item.parent) edges.push({id:`e-${item.parent}-${item.id}`,source:item.parent,target:item.id,type:'smoothstep',style:{stroke:'#174b60',strokeWidth:1.5}}); });
+  return <ReactFlow nodes={nodes} edges={edges} nodeTypes={{ mindNode: MindNode }} fitView onInit={()=>fitView({padding:.2})} minZoom={.5} maxZoom={1.5} zoomOnScroll={false} panOnScroll nodesDraggable={false} proOptions={{hideAttribution:true}}><Background color="#d9ddd8" gap={32} size={1}/><MiniMap pannable zoomable nodeColor="#174b60" maskColor="rgba(221,225,220,.72)"/><Controls showInteractive={false}/></ReactFlow>
 }
-function MindNode({ data }: {data:any}) { const [editing,setEditing]=useState(false); const [value,setValue]=useState(data.label); return <div className={`mind-node depth-${data.depth} ${data.selected?'selected':''}`} onClick={data.onSelect} onDoubleClick={()=>setEditing(true)}>{data.depth===0 && <div className="root-badge">ROOT</div>}{editing ? <input autoFocus value={value} onChange={e=>setValue(e.target.value)} onBlur={()=>{data.onEdit(value);setEditing(false)}} onKeyDown={e=>{if(e.key==='Enter'){data.onEdit(value);setEditing(false)}}}/> : <span>{data.label}</span>}{data.depth>0 && <div className="node-grip">⠿</div>}</div> }
+function MindNode({ data }: {data:any}) { const [editing,setEditing]=useState(false); const [value,setValue]=useState(data.label); return <div className={`mind-node depth-${data.depth} ${data.selected?'selected':''}`} onClick={data.onSelect} onDoubleClick={()=>setEditing(true)}><span className="node-status" />{editing ? <input autoFocus value={value} onChange={e=>setValue(e.target.value)} onBlur={()=>{data.onEdit(value);setEditing(false)}} onKeyDown={e=>{if(e.key==='Enter'){data.onEdit(value);setEditing(false)}}}/> : <span>{data.label}</span>}</div> }
 export default function Wrapped(){ return <ReactFlowProvider><App/></ReactFlowProvider> }
