@@ -36,17 +36,18 @@ This repository includes `render.yaml`. The app uses a small Node server so the 
 	- **Instance/plan:** Free
 6. Click **Create Web Service**.
 
-### 3. Add the OpenRouter key in Render
+### 3. Configure the AI service in Render
 
 1. Open the service in Render and select **Environment**.
 2. Click **Add Environment Variable**.
 3. Set the key to `OPENROUTER_API_KEY`.
 4. Paste the OpenRouter API key as the value. Do not add `VITE_` to this name: browser-exposed Vite variables are not private.
-5. Save changes and choose **Manual Deploy** → **Deploy latest commit** (or wait for the automatic deploy).
+5. Optionally override `OPENROUTER_MODEL` to select another model supported by OpenRouter. The Blueprint defaults it to `inclusionai/ling-3.0-flash`.
+6. Save changes and choose **Manual Deploy** → **Deploy latest commit** (or wait for the automatic deploy).
 
 On Render, `OPENROUTER_API_KEY` and `APP_URL` are supplied by Render's environment-variable settings. Render's values take precedence over any local `.env` values, and `.env` must not be committed. The server reads `process.env.OPENROUTER_API_KEY` in both cases.
 
-The server calls the free `nvidia/nemotron-3.5-lightning:free` model through OpenRouter. The key is never sent to the browser.
+The server calls the configured OpenRouter model. The API key is only read by `server.mjs` and is never sent to the browser. Render also uses `/healthz` as the web service health check.
 
 Render will install the locked dependencies, run the TypeScript/Vite production build, and serve `dist` through `server.mjs`.
 

@@ -12,6 +12,7 @@ const app = express();
 const port = process.env.PORT || 10000;
 const root = path.dirname(fileURLToPath(import.meta.url));
 const filesDir = path.join(root, 'files');
+const aiModel = process.env.OPENROUTER_MODEL || 'inclusionai/ling-3.0-flash';
 
 function mapPath(name) {
   const safeName = path.basename(typeof name === 'string' ? name : '');
@@ -20,6 +21,7 @@ function mapPath(name) {
 }
 
 app.use(express.json({ limit: '32kb' }));
+app.get('/healthz', (_req, res) => res.json({ ok: true, aiConfigured: Boolean(process.env.OPENROUTER_API_KEY) }));
 app.put('/api/maps/:name', async (req, res) => {
   const destination = mapPath(req.params.name);
   const { markdown } = req.body ?? {};
@@ -44,7 +46,7 @@ app.post('/api/generate-map', async (req, res) => {
   const instruction = `You edit Markdown mindmaps. Return ONLY a valid Markdown outline: one # root heading followed by nested bullet items using two spaces per level. Preserve useful existing content unless the user asks to replace it. Do not use code fences or commentary.\n\nExisting map:\n${markdown}\n\nUser request:\n${prompt}`;
   try {
     logTiming('openrouter-start', { instructionChars: instruction.length });
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': process.env.APP_URL || 'https://mindweave.onrender.com', 'X-Title': 'Mindweave' }, body: JSON.stringify({ model: 'inclusionai/ling-3.0-flash', messages: [{ role: 'user', content: instruction }], temperature: 0.2 }) });
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': process.env.APP_URL || 'https://mindweave.onrender.com', 'X-Title': 'Mindweave' }, body: JSON.stringify({ model: aiModel, messages: [{ role: 'user', content: instruction }], temperature: 0.2 }) });
     logTiming('openrouter-response', { status: response.status });
     const raw = await response.text();
     logTiming('openrouter-body-read', { responseChars: raw.length });

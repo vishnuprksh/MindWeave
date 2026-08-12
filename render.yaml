@@ -4,8 +4,11 @@ services:
     runtime: node
     buildCommand: npm ci && npm run build
     startCommand: npm start
+    healthCheckPath: /healthz
     envVars:
       - key: OPENROUTER_API_KEY
         sync: false
+      - key: OPENROUTER_MODEL
+        value: inclusionai/ling-3.0-flash
       - key: APP_URL
         sync: false
