@@ -8,8 +8,9 @@ Use **Tab** to add a child, **Enter** to add a sibling, **F2** or double-click t
 
 1. Copy `.env.example` to `.env`.
 2. Replace `your_openrouter_api_key_here` with your OpenRouter API key.
-3. Start the app with `npm run dev`.
-4. Use **Prompt Composer** to generate or edit the mindmap.
+3. Run `npm run dev`. This starts both the Vite frontend on `http://localhost:5173` and the Node API server on port `10000`.
+4. The Node server loads values from the local `.env` file with `dotenv`; the key is never exposed to the browser.
+5. Use **Prompt Composer** to generate or edit the mindmap.
 
 The key is read by the local Node server and is not exposed to the browser. Do not commit `.env`.
 
@@ -42,6 +43,8 @@ This repository includes `render.yaml`. The app uses a small Node server so the 
 3. Set the key to `OPENROUTER_API_KEY`.
 4. Paste the OpenRouter API key as the value. Do not add `VITE_` to this name: browser-exposed Vite variables are not private.
 5. Save changes and choose **Manual Deploy** → **Deploy latest commit** (or wait for the automatic deploy).
+
+On Render, `OPENROUTER_API_KEY` and `APP_URL` are supplied by Render's environment-variable settings. Render's values take precedence over any local `.env` values, and `.env` must not be committed. The server reads `process.env.OPENROUTER_API_KEY` in both cases.
 
 The server calls the free `nvidia/nemotron-3.5-lightning:free` model through OpenRouter. The key is never sent to the browser.
 
