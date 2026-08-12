@@ -7,7 +7,7 @@
 .flow-wrap .react-flow__controls{border:1px solid #b9c0ba;box-shadow:none}
 .flow-wrap .react-flow__controls button{background:#d4d8d2;border-color:#b9c0ba;color:var(--ink)}
 .flow-wrap .react-flow__minimap{background:#d2d7d1;border:1px solid #b9c0ba}
-.mind-node{min-width:176px;max-width:245px;min-height:30px;padding:8px 12px!important;border:0!important;border-radius:5px!important;background:var(--card)!important;color:var(--ink)!important;box-shadow:0 1px 2px #a9afa9!important;font:500 11px/1.25 'DM Mono',monospace!important;display:flex!important;align-items:center;gap:8px;transition:none!important}
+.mind-node{min-width:176px;max-width:245px;min-height:30px;height:auto;padding:8px 12px!important;border:0!important;border-radius:5px!important;background:var(--card)!important;color:var(--ink)!important;box-shadow:0 1px 2px #a9afa9!important;font:500 11px/1.25 'DM Mono',monospace!important;display:flex!important;align-items:center;gap:8px;transition:none!important;white-space:normal!important}
 .mind-node.depth-0{background:#bfc6be!important;font-weight:600!important}
 .mind-node.selected{outline:2px solid #2c7f8e!important;outline-offset:2px}
 .mind-node .node-status{width:7px;height:7px;flex:none;border-radius:50%;background:#21af73;box-shadow:0 0 0 2px #a8d8c2}

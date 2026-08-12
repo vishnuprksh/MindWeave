@@ -92,16 +92,21 @@ function Mindmap({ items, selected, select, edit, zoom }: {items: Item[]; select
   const children = new Map<string, Item[]>(); const visible = new Set(items.map(item => item.id));
   items.forEach(item => { if (item.parent && visible.has(item.parent)) { const group = children.get(item.parent) ?? []; group.push(item); children.set(item.parent, group); } });
   const roots = items.filter(item => !item.parent || !visible.has(item.parent));
-  const positions = new Map<string, { x: number; y: number }>(); let nextY = 0;
+  // Keep the estimate conservative because the node's status marker, handles,
+  // padding, and proportional font width reduce the space available for text.
+  const estimateHeight = (text: string) => { const charsPerLine = 24; const lineHeight = 14; const verticalPadding = 16; const lines = Math.max(1, Math.ceil(text.length / charsPerLine)); return Math.max(30, lines * lineHeight + verticalPadding); };
+  const positions = new Map<string, { x: number; y: number; height: number }>(); let nextY = 0;
   const place = (item: Item) => {
     const descendants = children.get(item.id) ?? [];
-    if (!descendants.length) { positions.set(item.id, { x: item.depth * 320, y: nextY }); nextY += 76; return; }
+    const nodeHeight = estimateHeight(item.text);
+    if (!descendants.length) { positions.set(item.id, { x: item.depth * 320, y: nextY, height: nodeHeight }); nextY += nodeHeight + 18; return; }
     descendants.forEach(place);
     const first = positions.get(descendants[0].id)!; const last = positions.get(descendants[descendants.length - 1].id)!;
-    positions.set(item.id, { x: item.depth * 320, y: (first.y + last.y) / 2 });
+    const centerY = (first.y + last.y) / 2;
+    positions.set(item.id, { x: item.depth * 320, y: centerY, height: nodeHeight });
   };
   roots.forEach(place);
-  items.forEach(item => { const position = positions.get(item.id) ?? { x: item.depth * 320, y: nextY }; nodes.push({ id:item.id, type:'mindNode', position, data:{ label:item.text, depth:item.depth, selected:item.id===selected, onSelect:()=>select(item.id), onEdit:(v:string)=>edit(item.id,v), editRequest: editRequest?.id === item.id ? editRequest : null }, sourcePosition:Position.Right, targetPosition:Position.Left }); if(item.parent && visible.has(item.parent)) edges.push({id:`e-${item.parent}-${item.id}`,source:item.parent,target:item.id,type:'smoothstep',style:{stroke:'#174b60',strokeWidth:2}}); });
+  items.forEach(item => { const position = positions.get(item.id) ?? { x: item.depth * 320, y: nextY, height: 30 }; nodes.push({ id:item.id, type:'mindNode', position, data:{ label:item.text, depth:item.depth, selected:item.id===selected, onSelect:()=>select(item.id), onEdit:(v:string)=>edit(item.id,v), editRequest: editRequest?.id === item.id ? editRequest : null, nodeHeight: position.height }, sourcePosition:Position.Right, targetPosition:Position.Left }); if(item.parent && visible.has(item.parent)) edges.push({id:`e-${item.parent}-${item.id}`,source:item.parent,target:item.id,type:'smoothstep',style:{stroke:'#174b60',strokeWidth:2}}); });
   return <ReactFlow nodes={nodes} edges={edges} nodeTypes={mindNodeTypes} fitView onInit={()=>fitView({padding:.2})} minZoom={.5} maxZoom={1.5} zoomOnScroll={false} panOnScroll nodesDraggable={false} proOptions={{hideAttribution:true}}><Background color="#d9ddd8" gap={32} size={1}/><MiniMap pannable zoomable nodeColor="#174b60" maskColor="rgba(221,225,220,.72)"/><Controls showInteractive={false}/></ReactFlow>
 }
 const mindNodeTypes = { mindNode: MindNode };
@@ -110,6 +115,7 @@ function MindNode({ data }: {data:any}) {
   useEffect(() => { setValue(data.label); }, [data.label]);
   useEffect(() => { if (!data.editRequest) return; setEditing(true); setValue(data.editRequest.initial ?? data.label); requestAnimationFrame(() => { inputRef.current?.focus(); inputRef.current?.select(); }); }, [data.editRequest]);
   const finish = (commit: boolean) => { if (commit) data.onEdit(value); else setValue(data.label); setEditing(false); };
-  return <div className={`mind-node depth-${data.depth} ${data.selected?'selected':''}`} onClick={data.onSelect} onDoubleClick={()=>{setEditing(true); requestAnimationFrame(()=>inputRef.current?.focus());}}><Handle type="target" position={Position.Left} className="mind-handle" /><span className="node-status" />{editing ? <input ref={inputRef} autoFocus value={value} onChange={e=>setValue(e.target.value)} onBlur={()=>finish(true)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();finish(true);} if(e.key==='Escape'){e.preventDefault();finish(false);}}}/> : <span>{data.label}</span>}<Handle type="source" position={Position.Right} className="mind-handle" /></div>
+  const nodeHeight = data.nodeHeight ?? 30;
+  return <div className={`mind-node depth-${data.depth} ${data.selected?'selected':''}`} style={{minHeight:nodeHeight}} onClick={data.onSelect} onDoubleClick={()=>{setEditing(true); requestAnimationFrame(()=>inputRef.current?.focus());}}><Handle type="target" position={Position.Left} className="mind-handle" /><span className="node-status" />{editing ? <input ref={inputRef} autoFocus value={value} onChange={e=>setValue(e.target.value)} onBlur={()=>finish(true)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();finish(true);} if(e.key==='Escape'){e.preventDefault();finish(false);}}}/> : <span>{data.label}</span>}<Handle type="source" position={Position.Right} className="mind-handle" /></div>
 }
 export default function Wrapped(){ return <ReactFlowProvider><App/></ReactFlowProvider> }
