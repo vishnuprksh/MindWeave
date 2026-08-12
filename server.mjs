@@ -39,7 +39,7 @@ app.post('/api/generate-map', async (req, res) => {
   if (typeof prompt !== 'string' || !prompt.trim()) return res.status(400).json({ error: 'Enter a prompt first.' });
   const instruction = `You edit Markdown mindmaps. Return ONLY a valid Markdown outline: one # root heading followed by nested bullet items using two spaces per level. Preserve useful existing content unless the user asks to replace it. Do not use code fences or commentary.\n\nExisting map:\n${markdown}\n\nUser request:\n${prompt}`;
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': process.env.APP_URL || 'https://mindweave.onrender.com', 'X-Title': 'Mindweave' }, body: JSON.stringify({ model: 'nvidia/nemotron-3.5-lightning:free', messages: [{ role: 'user', content: instruction }], temperature: 0.2 }) });
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': process.env.APP_URL || 'https://mindweave.onrender.com', 'X-Title': 'Mindweave' }, body: JSON.stringify({ model: 'inclusionai/ling-3.0-flash', messages: [{ role: 'user', content: instruction }], temperature: 0.2 }) });
     const raw = await response.text();
     let data = {};
     if (raw.trim()) {
