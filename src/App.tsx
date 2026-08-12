@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Background, Controls, Edge, MiniMap, Node, Position, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
+import { Background, Controls, Edge, Handle, MiniMap, Node, Position, ReactFlow, ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import { ArrowDownToLine, ChevronDown, FileText, FolderOpen, GitBranch, Lightbulb, Maximize2, MoreHorizontal, Plus, RefreshCw, Search, Sparkles, Trash2, Upload, X, Zap } from 'lucide-react';
 import '@xyflow/react/dist/style.css';
 
@@ -44,9 +44,21 @@ function App() {
 }
 
 function Mindmap({ items, selected, select, edit, zoom }: {items: Item[]; selected: string; select:(id:string)=>void; edit:(id:string,text:string)=>void; zoom:number}) {
-  const { fitView } = useReactFlow(); const nodes: Node[] = []; const edges: Edge[] = []; const levels = new Map<number, number>(); const pos = new Map<string, {x:number,y:number}>();
-  items.forEach((item, index) => { const same = levels.get(item.depth) ?? 0; levels.set(item.depth, same + 1); const x = item.depth * 285; const y = same * 112 + (item.depth % 2 ? 28 : 0); pos.set(item.id,{x,y}); nodes.push({ id:item.id, type:'mindNode', position:{x,y}, data:{ label:item.text, depth:item.depth, selected:item.id===selected, onSelect:()=>select(item.id), onEdit:(v:string)=>edit(item.id,v) }, sourcePosition:Position.Right, targetPosition:Position.Left }); if(item.parent) edges.push({id:`e-${item.parent}-${item.id}`,source:item.parent,target:item.id,type:'smoothstep',style:{stroke:'#174b60',strokeWidth:1.5}}); });
+  const { fitView } = useReactFlow(); const nodes: Node[] = []; const edges: Edge[] = [];
+  const children = new Map<string, Item[]>(); const visible = new Set(items.map(item => item.id));
+  items.forEach(item => { if (item.parent && visible.has(item.parent)) { const group = children.get(item.parent) ?? []; group.push(item); children.set(item.parent, group); } });
+  const roots = items.filter(item => !item.parent || !visible.has(item.parent));
+  const positions = new Map<string, { x: number; y: number }>(); let nextY = 0;
+  const place = (item: Item) => {
+    const descendants = children.get(item.id) ?? [];
+    if (!descendants.length) { positions.set(item.id, { x: item.depth * 320, y: nextY }); nextY += 76; return; }
+    descendants.forEach(place);
+    const first = positions.get(descendants[0].id)!; const last = positions.get(descendants[descendants.length - 1].id)!;
+    positions.set(item.id, { x: item.depth * 320, y: (first.y + last.y) / 2 });
+  };
+  roots.forEach(place);
+  items.forEach(item => { const position = positions.get(item.id) ?? { x: item.depth * 320, y: nextY }; nodes.push({ id:item.id, type:'mindNode', position, data:{ label:item.text, depth:item.depth, selected:item.id===selected, onSelect:()=>select(item.id), onEdit:(v:string)=>edit(item.id,v) }, sourcePosition:Position.Right, targetPosition:Position.Left }); if(item.parent && visible.has(item.parent)) edges.push({id:`e-${item.parent}-${item.id}`,source:item.parent,target:item.id,type:'smoothstep',style:{stroke:'#174b60',strokeWidth:2}}); });
   return <ReactFlow nodes={nodes} edges={edges} nodeTypes={{ mindNode: MindNode }} fitView onInit={()=>fitView({padding:.2})} minZoom={.5} maxZoom={1.5} zoomOnScroll={false} panOnScroll nodesDraggable={false} proOptions={{hideAttribution:true}}><Background color="#d9ddd8" gap={32} size={1}/><MiniMap pannable zoomable nodeColor="#174b60" maskColor="rgba(221,225,220,.72)"/><Controls showInteractive={false}/></ReactFlow>
 }
-function MindNode({ data }: {data:any}) { const [editing,setEditing]=useState(false); const [value,setValue]=useState(data.label); return <div className={`mind-node depth-${data.depth} ${data.selected?'selected':''}`} onClick={data.onSelect} onDoubleClick={()=>setEditing(true)}><span className="node-status" />{editing ? <input autoFocus value={value} onChange={e=>setValue(e.target.value)} onBlur={()=>{data.onEdit(value);setEditing(false)}} onKeyDown={e=>{if(e.key==='Enter'){data.onEdit(value);setEditing(false)}}}/> : <span>{data.label}</span>}</div> }
+function MindNode({ data }: {data:any}) { const [editing,setEditing]=useState(false); const [value,setValue]=useState(data.label); return <div className={`mind-node depth-${data.depth} ${data.selected?'selected':''}`} onClick={data.onSelect} onDoubleClick={()=>setEditing(true)}><Handle type="target" position={Position.Left} className="mind-handle" /><span className="node-status" />{editing ? <input autoFocus value={value} onChange={e=>setValue(e.target.value)} onBlur={()=>{data.onEdit(value);setEditing(false)}} onKeyDown={e=>{if(e.key==='Enter'){data.onEdit(value);setEditing(false)}}}/> : <span>{data.label}</span>}<Handle type="source" position={Position.Right} className="mind-handle" /></div> }
 export default function Wrapped(){ return <ReactFlowProvider><App/></ReactFlowProvider> }
