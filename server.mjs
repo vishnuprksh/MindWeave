@@ -4,8 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// Load .env for local development without overriding environment variables
-// supplied by Render (or another deployment platform).
+// Load .env for local development without overriding deployment environment variables.
 dotenv.config({ override: false });
 
 const app = express();
@@ -46,7 +45,8 @@ app.post('/api/generate-map', async (req, res) => {
   const instruction = `You edit Markdown mindmaps. Return ONLY a valid Markdown outline: one # root heading followed by nested bullet items using two spaces per level. Preserve useful existing content unless the user asks to replace it. Do not use code fences or commentary.\n\nExisting map:\n${markdown}\n\nUser request:\n${prompt}`;
   try {
     logTiming('openrouter-start', { instructionChars: instruction.length });
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': process.env.APP_URL || 'https://mindweave.onrender.com', 'X-Title': 'Mindweave' }, body: JSON.stringify({ model: aiModel, messages: [{ role: 'user', content: instruction }], temperature: 0.2 }) });
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': process.env.APP_URL || 'https://vercel.com', 'X-Title': 'Mindweave' }, body: JSON.stringify({ model: aiModel, messages: [{ role: 'user', content: instruction }], temperature: 0.2 }) });
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': process.env.APP_URL || 'https://vercel.com', 'X-Title': 'Mindweave' }, body: JSON.stringify({ model: aiModel, messages: [{ role: 'user', content: instruction }], temperature: 0.2 }) });
     logTiming('openrouter-response', { status: response.status });
     const raw = await response.text();
     logTiming('openrouter-body-read', { responseChars: raw.length });

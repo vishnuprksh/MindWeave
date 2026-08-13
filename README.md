@@ -14,53 +14,47 @@ Use **Tab** to add a child, **Enter** to add a sibling, **F2** or double-click t
 
 The key is read by the local Node server and is not exposed to the browser. Do not commit `.env`.
 
-## Deploy to Render (free)
+## Deploy to Vercel
 
-This repository includes `render.yaml`. The app uses a small Node server so the OpenRouter key stays server-side.
+The production frontend is built by Vite and the OpenRouter integration runs in the Vercel function at `api/index.mjs`. The API key stays server-side; do not prefix it with `VITE_`.
 
 ### 1. Push the project to GitHub
 
 1. Create a repository on GitHub.
-2. From the project directory, commit and push the project, including `package-lock.json` and `render.yaml`.
-3. Confirm that `src/`, `files/`, `package.json`, and `render.yaml` are present in the repository.
+2. From the project directory, commit and push the project, including `package-lock.json` and `vercel.json`.
+3. Confirm that `src/`, `files/`, `package.json`, `api/`, and `vercel.json` are present in the repository.
 
-### 2. Create the Render service
+### 2. Import the project into Vercel
 
-1. Sign in at [render.com](https://render.com/) and open the dashboard.
-2. Select **New +** → **Static Site**.
-3. Connect GitHub and select the Mindweave repository. Choose **Web Service** (not Static Site).
-4. Set **Branch** to `main` (or the branch containing the deployment files).
-5. Use these settings:
-	- **Build Command:** `npm ci && npm run build`
-	- **Start Command:** `npm start`
-	- **Instance/plan:** Free
-6. Click **Create Web Service**.
+1. Sign in at [vercel.com](https://vercel.com/) and choose **Add New → Project**.
+2. Import the GitHub repository and keep the detected Vite settings.
+3. Use `npm run build` as the build command and `dist` as the output directory if Vercel asks for them.
+4. Deploy the project. `vercel.json` supplies the API and SPA routes.
 
-### 3. Configure the AI service in Render
+### 3. Configure the AI service in Vercel
 
-1. Open the service in Render and select **Environment**.
-2. Click **Add Environment Variable**.
+1. Open the project in Vercel and select **Settings → Environment Variables**.
 3. Set the key to `OPENROUTER_API_KEY`.
 4. Paste the OpenRouter API key as the value. Do not add `VITE_` to this name: browser-exposed Vite variables are not private.
 5. Optionally override `OPENROUTER_MODEL` to select another model supported by OpenRouter. The Blueprint defaults it to `inclusionai/ling-3.0-flash`.
-6. Save changes and choose **Manual Deploy** → **Deploy latest commit** (or wait for the automatic deploy).
+6. Optionally set `APP_URL` to the deployed Vercel URL, then redeploy so the function receives the variables.
 
-On Render, `OPENROUTER_API_KEY` and `APP_URL` are supplied by Render's environment-variable settings. Render's values take precedence over any local `.env` values, and `.env` must not be committed. The server reads `process.env.OPENROUTER_API_KEY` in both cases.
+Vercel's environment variables take precedence over local `.env` values, and `.env` must not be committed. The server-side function reads `process.env.OPENROUTER_API_KEY`.
 
-The server calls the configured OpenRouter model. The API key is only read by `server.mjs` and is never sent to the browser. Render also uses `/healthz` as the web service health check.
+The server calls the configured OpenRouter model. The API key is only read by `api/index.mjs` and is never sent to the browser. Use `/api/healthz` to verify the deployed function.
 
-Render will install the locked dependencies, run the TypeScript/Vite production build, and serve `dist` through `server.mjs`.
+Vercel installs the locked dependencies, runs the TypeScript/Vite production build, serves `dist`, and routes `/api/*` to `api/index.mjs`. Vercel functions do not provide persistent writes to the repository, so use the existing Export action for downloads; connect a database or Vercel Blob later if server-side map persistence is needed.
 
 ### 4. Verify the deployment
 
-1. Wait for the first deploy to finish with status **Live**.
-2. Open the `onrender.com` URL shown by Render.
+1. Wait for the first deployment to finish.
+2. Open the Vercel URL shown in the project dashboard.
 3. Verify that the sample Markdown maps load and that import/export works.
 4. Enter a request in **Prompt Composer** and choose **Generate map**. The current outline is sent as context, so prompts can edit or extend the existing map.
 
 ### 5. Future deployments
 
-Push changes to the configured branch. Render automatically starts a new deployment. To deploy manually, open the service and choose **Manual Deploy** → **Deploy latest commit**.
+Push changes to the configured branch. Vercel automatically starts a new deployment.
 
 ### Local production check
 
