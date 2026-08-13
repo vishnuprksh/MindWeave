@@ -8,6 +8,9 @@ const mapFiles = Object.entries(markdownFiles).map(([path, content]) => ({ name:
 const starter = mapFiles[0]?.content ?? '# Untitled map';
 
 type Item = { id: string; text: string; depth: number; parent?: string };
+type DropPreview =
+  | { kind: 'child'; targetId: string }
+  | { kind: 'sibling'; parentId?: string; beforeId?: string; x: number; y: number };
 
 function parseMarkdown(md: string): Item[] {
   const lines = md.split(/\r?\n/).filter(l => l.trim());
@@ -39,6 +42,16 @@ const promptTiming = (requestId: string, startedAt: number, stage: string, detai
   const edit = (id: string, text: string) => updateItems(items.map(i => i.id === id ? { ...i, text: text || 'Untitled node' } : i));
   const addNode = (kind: 'child'|'sibling') => { const current = items.find(i => i.id === selected) ?? items[0]; if (!current) return; const depth = kind === 'child' ? current.depth + 1 : current.depth; const newItem = { id: `n${Date.now()}`, text: kind === 'child' ? 'New child' : 'New idea', depth, parent: kind === 'child' ? current.id : current.parent }; const idx = items.findIndex(i => i.id === current.id); updateItems([...items.slice(0, idx + 1), newItem, ...items.slice(idx + 1)]); setSelected(newItem.id); };
   const remove = () => { if (items.length <= 1) return; const target = items.find(i => i.id === selected); if (!target) return; const ids = new Set([target.id]); items.forEach(i => { if (i.parent && ids.has(i.parent)) ids.add(i.id); }); updateItems(items.filter(i => !ids.has(i.id))); setSelected(items.find(i => !ids.has(i.id))?.id ?? 'n0'); };
+  const moveItem = useCallback((id: string, parent: string | undefined, beforeId?: string) => {
+    const source = items.find(item => item.id === id); if (!source || source.depth === 0 && parent) return;
+    const descendants = new Set<string>([id]); items.forEach(item => { if (item.parent && descendants.has(item.parent)) descendants.add(item.id); });
+    if (parent && descendants.has(parent)) return;
+    const block = items.filter(item => descendants.has(item.id)); const remaining = items.filter(item => !descendants.has(item.id));
+    const nextDepth = parent ? (items.find(item => item.id === parent)?.depth ?? 0) + 1 : 0; const delta = nextDepth - source.depth;
+    const moved = block.map((item, index) => ({ ...item, depth: item.depth + delta, parent: index === 0 ? parent : item.parent }));
+    const insertAt = beforeId ? remaining.findIndex(item => item.id === beforeId) : remaining.length;
+    remaining.splice(insertAt < 0 ? remaining.length : insertAt, 0, ...moved); updateItems(remaining);
+  }, [items, updateItems]);
   const generate = async () => {
     if (!prompt.trim() || generating) return;
     const requestId = crypto.randomUUID();
@@ -76,7 +89,7 @@ const promptTiming = (requestId: string, startedAt: number, stage: string, detai
       <div className="sidebar-resizer" role="separator" aria-label="Resize sidebar" title="Drag to resize sidebar" onMouseDown={e => { e.preventDefault(); const move = (event: MouseEvent) => setSidebarWidth(Math.min(440, Math.max(230, event.clientX))); const stop = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop); }; window.addEventListener('mousemove', move); window.addEventListener('mouseup', stop); }}><GripVertical size={14}/></div>
       <div className="sidebar-footer"><span className="status"><span className="green"/> Saved just now</span><button className="icon-btn"><RefreshCw size={15}/></button><div className="avatar">AV</div></div>
     </aside>
-    <main className="main"><header className="topbar"><div className="breadcrumbs"><button className="icon-btn sidebar-toggle" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}>{sidebarCollapsed ? <PanelLeftOpen size={17}/> : <PanelLeftClose size={17}/>}</button><span>My workspace</span><b>/</b><strong>Untitled map</strong></div><div className="top-actions"><div className="history-actions" aria-label="History"><button className="icon-btn" onClick={undo} disabled={!history.length} title="Undo"><Undo2 size={16}/></button><button className="icon-btn" onClick={redo} disabled={!future.length} title="Redo"><Redo2 size={16}/></button></div><div className="view-switcher" role="tablist" aria-label="Map view"><button className={view==='mindmap'?'active':''} onClick={()=>setView('mindmap')}>Mindmap</button><button className={view==='markdown'?'active':''} onClick={()=>setView('markdown')}>Markdown</button></div><button className="share"><Zap size={15}/> Share</button><button className="icon-btn"><MoreHorizontal size={18}/></button></div></header><section className="workspace"><div className="canvas-head"><div><h1>{view === 'mindmap' ? 'Untitled map' : 'Source markdown'}</h1><p>{view === 'mindmap' ? <>Product launch strategy <span>•</span> Edited just now</> : <>Edit the outline to update the mindmap <span>•</span> Markdown source</>}</p></div>{view === 'mindmap' && <div className="canvas-tools"><div className="search"><Search size={15}/><input placeholder="Find in map" value={query} onChange={e=>setQuery(e.target.value)}/><kbd>⌘ F</kbd></div><button className="icon-btn"><Maximize2 size={16}/></button></div>}</div>{view === 'mindmap' ? <div className="flow-wrap"><Mindmap items={filtered} selected={selected} select={select} edit={edit} zoom={zoom}/><div className="canvas-hint"><span className="key">TAB</span> child <span className="key">↵</span> sibling <span className="key">F2</span> edit <span className="key">DEL</span> delete</div><div className="zoom"><button onClick={()=>setZoom(z=>Math.min(1.3,z+.1))}>+</button><span>{Math.round(zoom*100)}%</span><button onClick={()=>setZoom(z=>Math.max(.7,z-.1))}>−</button></div></div> : <MarkdownEditor markdown={markdown} setMarkdown={updateMarkdown} onExport={() => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([markdown], {type:'text/markdown'})); a.download = 'mindmap.md'; a.click(); }} />}</section></main>
+    <main className="main"><header className="topbar"><div className="breadcrumbs"><button className="icon-btn sidebar-toggle" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}>{sidebarCollapsed ? <PanelLeftOpen size={17}/> : <PanelLeftClose size={17}/>}</button><span>My workspace</span><b>/</b><strong>Untitled map</strong></div><div className="top-actions"><div className="history-actions" aria-label="History"><button className="icon-btn" onClick={undo} disabled={!history.length} title="Undo"><Undo2 size={16}/></button><button className="icon-btn" onClick={redo} disabled={!future.length} title="Redo"><Redo2 size={16}/></button></div><div className="view-switcher" role="tablist" aria-label="Map view"><button className={view==='mindmap'?'active':''} onClick={()=>setView('mindmap')}>Mindmap</button><button className={view==='markdown'?'active':''} onClick={()=>setView('markdown')}>Markdown</button></div><button className="share"><Zap size={15}/> Share</button><button className="icon-btn"><MoreHorizontal size={18}/></button></div></header><section className="workspace"><div className="canvas-head"><div><h1>{view === 'mindmap' ? 'Untitled map' : 'Source markdown'}</h1><p>{view === 'mindmap' ? <>Product launch strategy <span>•</span> Edited just now</> : <>Edit the outline to update the mindmap <span>•</span> Markdown source</>}</p></div>{view === 'mindmap' && <div className="canvas-tools"><div className="search"><Search size={15}/><input placeholder="Find in map" value={query} onChange={e=>setQuery(e.target.value)}/><kbd>⌘ F</kbd></div><button className="icon-btn"><Maximize2 size={16}/></button></div>}</div>{view === 'mindmap' ? <div className="flow-wrap"><Mindmap items={filtered} selected={selected} select={select} edit={edit} moveItem={moveItem} zoom={zoom}/><div className="canvas-hint"><span className="key">TAB</span> child <span className="key">↵</span> sibling <span className="key">F2</span> edit <span className="key">DEL</span> delete</div><div className="zoom"><button onClick={()=>setZoom(z=>Math.min(1.3,z+.1))}>+</button><span>{Math.round(zoom*100)}%</span><button onClick={()=>setZoom(z=>Math.max(.7,z-.1))}>−</button></div></div> : <MarkdownEditor markdown={markdown} setMarkdown={updateMarkdown} onExport={() => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([markdown], {type:'text/markdown'})); a.download = 'mindmap.md'; a.click(); }} />}</section></main>
   </div>
 }
 
@@ -84,8 +97,9 @@ function MarkdownEditor({ markdown, setMarkdown, onSave = () => undefined, onExp
   return <div className="markdown-view"><div className="markdown-toolbar"><span className="markdown-file"><FileText size={16}/> mindmap.md</span><span className="markdown-meta">Markdown outline · saved on blur</span><button onClick={onExport}><ArrowDownToLine size={14}/> Export</button></div><textarea aria-label="Markdown source editor" spellCheck={false} value={markdown} onChange={e=>setMarkdown(e.target.value)} onBlur={onSave} /></div>;
 }
 
-function Mindmap({ items, selected, select, edit, zoom }: {items: Item[]; selected: string; select:(id:string)=>void; edit:(id:string,text:string)=>void; zoom:number}) {
+function Mindmap({ items, selected, select, edit, moveItem = () => undefined, zoom }: {items: Item[]; selected: string; select:(id:string)=>void; edit:(id:string,text:string)=>void; moveItem?: (id:string,parent?:string,beforeId?:string)=>void; zoom:number}) {
   const [editRequest, setEditRequest] = useState<{ id: string; initial?: string; request: number } | null>(null);
+  const [preview, setPreview] = useState<DropPreview | null>(null);
   useEffect(() => { const handler = (e: KeyboardEvent) => { const target = e.target as HTMLElement; if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return; if (selected && e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); setEditRequest({ id: selected, initial: e.key, request: Date.now() }); } else if (selected && e.key === 'F2') { e.preventDefault(); setEditRequest({ id: selected, request: Date.now() }); } }; window.addEventListener('keydown', handler); return () => window.removeEventListener('keydown', handler); }, [selected]);
   const { fitView } = useReactFlow(); const nodes: Node[] = []; const edges: Edge[] = [];
   const children = new Map<string, Item[]>(); const visible = new Set(items.map(item => item.id));
@@ -105,16 +119,42 @@ function Mindmap({ items, selected, select, edit, zoom }: {items: Item[]; select
     positions.set(item.id, { x: item.depth * 320, y: centerY, height: nodeHeight });
   };
   roots.forEach(place);
-  items.forEach(item => { const position = positions.get(item.id) ?? { x: item.depth * 320, y: nextY, height: 30 }; nodes.push({ id:item.id, type:'mindNode', position, data:{ label:item.text, depth:item.depth, selected:item.id===selected, onSelect:()=>select(item.id), onEdit:(v:string)=>edit(item.id,v), editRequest: editRequest?.id === item.id ? editRequest : null, nodeHeight: position.height }, sourcePosition:Position.Right, targetPosition:Position.Left }); if(item.parent && visible.has(item.parent)) edges.push({id:`e-${item.parent}-${item.id}`,source:item.parent,target:item.id,type:'smoothstep',style:{stroke:'#174b60',strokeWidth:2}}); });
-  return <ReactFlow nodes={nodes} edges={edges} nodeTypes={mindNodeTypes} fitView onInit={()=>fitView({padding:.2})} minZoom={.5} maxZoom={1.5} zoomOnScroll={false} panOnScroll nodesDraggable={false} proOptions={{hideAttribution:true}}><Background color="#d9ddd8" gap={32} size={1}/><MiniMap pannable zoomable nodeColor="#174b60" maskColor="rgba(221,225,220,.72)"/><Controls showInteractive={false}/></ReactFlow>
+  items.forEach(item => { const position = positions.get(item.id) ?? { x: item.depth * 320, y: nextY, height: 30 }; nodes.push({ id:item.id, type:'mindNode', position, dragHandle:'.drag-grip', data:{ label:item.text, depth:item.depth, selected:item.id===selected, onSelect:()=>select(item.id), onEdit:(v:string)=>edit(item.id,v), editRequest: editRequest?.id === item.id ? editRequest : null, nodeHeight: position.height, preview: preview?.kind === 'child' && preview.targetId === item.id ? 'target' : undefined }, sourcePosition:Position.Right, targetPosition:Position.Left }); if(item.parent && visible.has(item.parent)) edges.push({id:`e-${item.parent}-${item.id}`,source:item.parent,target:item.id,type:'smoothstep',style:{stroke:'#174b60',strokeWidth:2}}); });
+  if (preview?.kind === 'sibling') nodes.push({ id: '__drop-line__', type: 'dropLine', position: { x: preview.x, y: preview.y - 1 }, selectable: false, draggable: false, focusable: false, data: {} });
+  const computeDrop = (node: Node): DropPreview => {
+    const dragged = nodes.find(item => item.id === node.id); if (!dragged) return { kind: 'sibling', x: 0, y: node.position.y };
+    const center = { x: node.position.x + 110, y: node.position.y + (Number(node.data.nodeHeight) || 30) / 2 };
+    const candidates = nodes.filter(item => item.id !== node.id && !item.data?.selected && !item.id.startsWith(`${node.id}-`));
+    const target = candidates.find(item => center.x >= item.position.x - 24 && center.x <= item.position.x + 270 && center.y >= item.position.y - 20 && center.y <= item.position.y + (Number(item.data.nodeHeight) || 30) + 20);
+    if (target) return { kind: 'child', targetId: target.id };
+    const source = items.find(item => item.id === node.id); if (!source) return { kind: 'sibling', x: 0, y: node.position.y };
+    const siblings = nodes.filter(item => item.id !== node.id && items.find(candidate => candidate.id === item.id)?.parent === source.parent).sort((a, b) => a.position.y - b.position.y);
+    const before = siblings.find(item => center.y < item.position.y + (Number(item.data.nodeHeight) || 30) / 2);
+    const y = before ? before.position.y : (siblings.length ? siblings[siblings.length - 1].position.y + (Number(siblings[siblings.length - 1].data.nodeHeight) || 30) : node.position.y);
+    return { kind: 'sibling', parentId: source.parent, beforeId: before?.id, x: source.depth * 320, y };
+  };
+  const commitDrop = (_event: unknown, node: Node) => {
+    const drop = computeDrop(node); setPreview(null);
+    if (drop.kind === 'child') { moveItem(node.id, drop.targetId); return; }
+    moveItem(node.id, drop.parentId, drop.beforeId);
+  };
+  const onNodeDragStart = () => setPreview(null);
+  const onNodeDrag = (_event: unknown, node: Node) => setPreview(prev => {
+    const next = computeDrop(node);
+    if (prev && next.kind === 'child' && prev.kind === 'child' && next.targetId === prev.targetId) return prev;
+    if (prev && next.kind === 'sibling' && prev.kind === 'sibling' && next.beforeId === prev.beforeId && next.parentId === prev.parentId && next.y === prev.y && next.x === prev.x) return prev;
+    return next;
+  });
+  return <ReactFlow nodes={nodes} edges={edges} nodeTypes={mindNodeTypes} fitView onInit={()=>fitView({padding:.2})} onNodeDragStart={onNodeDragStart} onNodeDrag={onNodeDrag} onNodeDragStop={commitDrop} minZoom={.5} maxZoom={1.5} zoomOnScroll={false} panOnDrag nodesDraggable proOptions={{hideAttribution:true}}><Background color="#d9ddd8" gap={32} size={1}/><MiniMap pannable zoomable nodeColor="#174b60" maskColor="rgba(221,225,220,.72)"/><Controls showInteractive={false}/></ReactFlow>
 }
-const mindNodeTypes = { mindNode: MindNode };
+const mindNodeTypes = { mindNode: MindNode, dropLine: DropLine };
+function DropLine() { return <div className="drop-line" />; }
 function MindNode({ data }: {data:any}) {
   const [editing, setEditing] = useState(false); const [value, setValue] = useState(data.label); const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { setValue(data.label); }, [data.label]);
   useEffect(() => { if (!data.editRequest) return; setEditing(true); setValue(data.editRequest.initial ?? data.label); requestAnimationFrame(() => { inputRef.current?.focus(); inputRef.current?.select(); }); }, [data.editRequest]);
   const finish = (commit: boolean) => { if (commit) data.onEdit(value); else setValue(data.label); setEditing(false); };
   const nodeHeight = data.nodeHeight ?? 30;
-  return <div className={`mind-node depth-${data.depth} ${data.selected?'selected':''}`} style={{minHeight:nodeHeight}} onClick={data.onSelect} onDoubleClick={()=>{setEditing(true); requestAnimationFrame(()=>inputRef.current?.focus());}}><Handle type="target" position={Position.Left} className="mind-handle" /><span className="node-status" />{editing ? <input ref={inputRef} autoFocus value={value} onChange={e=>setValue(e.target.value)} onBlur={()=>finish(true)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();finish(true);} if(e.key==='Escape'){e.preventDefault();finish(false);}}}/> : <span>{data.label}</span>}<Handle type="source" position={Position.Right} className="mind-handle" /></div>
+  return <div className={`mind-node depth-${data.depth} ${data.selected?'selected':''} ${data.preview==='target'?'drop-target':''}`} style={{minHeight:nodeHeight}} onClick={data.onSelect} onDoubleClick={()=>{setEditing(true); requestAnimationFrame(()=>inputRef.current?.focus());}}><Handle type="target" position={Position.Left} className="mind-handle" /><span className="node-status" />{editing ? <input ref={inputRef} autoFocus value={value} onChange={e=>setValue(e.target.value)} onBlur={()=>finish(true)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();finish(true);} if(e.key==='Escape'){e.preventDefault();finish(false);}}}/> : <span>{data.label}</span>}<span className="drag-grip" title="Drag to move or reorder"><GripVertical size={12}/></span><Handle type="source" position={Position.Right} className="mind-handle" /></div>
 }
 export default function Wrapped(){ return <ReactFlowProvider><App/></ReactFlowProvider> }
