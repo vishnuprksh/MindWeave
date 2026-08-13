@@ -12,7 +12,7 @@
 .mind-node.selected{outline:2px solid #2c7f8e!important;outline-offset:2px}
 .mind-node .node-status{width:7px;height:7px;flex:none;border-radius:50%;background:#21af73;box-shadow:0 0 0 2px #a8d8c2}
 .mind-node.depth-0 .node-status{background:#26718a;box-shadow:0 0 0 2px #9bbbc3}
-.mind-node input{width:100%;border:0;background:transparent;color:inherit;outline:0;font:inherit}.drag-grip{margin-left:auto;display:flex;color:#55717b;opacity:.55;cursor:grab}.mind-node:active .drag-grip{cursor:grabbing}.mind-node .drag-grip svg{pointer-events:none}
+.mind-node input{width:100%;border:0;background:transparent;color:inherit;outline:0;font:inherit}.mind-node{cursor:grab}.mind-node:active{cursor:grabbing}
 .mind-node.drop-target{outline:2px dashed #2c7f8e!important;outline-offset:3px;box-shadow:0 0 0 4px rgba(44,127,142,.28)!important}
 .drop-line{width:290px;height:3px;border-radius:3px;background:repeating-linear-gradient(90deg,#2c7f8e 0 7px,transparent 7px 14px);pointer-events:none;box-shadow:0 1px 2px rgba(44,127,142,.4)}
 .mind-handle{width:6px!important;height:6px!important;border:0!important;border-radius:50%!important;background:#174b60!important;opacity:0}
