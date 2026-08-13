@@ -46,7 +46,6 @@ app.post('/api/generate-map', async (req, res) => {
   try {
     logTiming('openrouter-start', { instructionChars: instruction.length });
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': process.env.APP_URL || 'https://vercel.com', 'X-Title': 'Mindweave' }, body: JSON.stringify({ model: aiModel, messages: [{ role: 'user', content: instruction }], temperature: 0.2 }) });
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': process.env.APP_URL || 'https://vercel.com', 'X-Title': 'Mindweave' }, body: JSON.stringify({ model: aiModel, messages: [{ role: 'user', content: instruction }], temperature: 0.2 }) });
     logTiming('openrouter-response', { status: response.status });
     const raw = await response.text();
     logTiming('openrouter-body-read', { responseChars: raw.length });
