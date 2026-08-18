@@ -24,8 +24,9 @@ export default async function handler(req, res) {
   if (typeof prompt !== 'string' || !prompt.trim()) return json(res, 400, { error: 'Enter a prompt first.' });
 
   const instruction = `You edit Markdown mindmaps. Return ONLY a valid Markdown outline: one # root heading followed by nested bullet items using two spaces per level. Preserve useful existing content unless the user asks to replace it. Do not use code fences or commentary.\n\nExisting map:\n${markdown}\n\nUser request:\n${prompt}`;
+  let response;
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
@@ -35,6 +36,10 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({ model: aiModel, messages: [{ role: 'user', content: instruction }], temperature: 0.2 }),
     });
+  } catch {
+    return json(res, 502, { error: 'Could not reach OpenRouter. Check the server network connection and API configuration.' });
+  }
+  try {
     const raw = await response.text();
     let data = {};
     if (raw.trim()) {
@@ -45,6 +50,6 @@ export default async function handler(req, res) {
     if (!content) return json(res, 502, { error: 'OpenRouter returned no map.' });
     return json(res, 200, { markdown: content, saved: false });
   } catch {
-    return json(res, 502, { error: 'Could not reach OpenRouter.' });
+    return json(res, 500, { error: 'OpenRouter returned a response that could not be processed.' });
   }
 }
