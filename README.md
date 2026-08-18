@@ -4,6 +4,31 @@ A prompt-based mindmap editor for Markdown bullet outlines. Run `npm install`, t
 
 Use **Tab** to add a child, **Enter** to add a sibling, **F2** or double-click to edit, and **Delete** to remove a node. Import/export Markdown from the left panel.
 
+## Supabase authentication and saved maps
+
+1. Create a Supabase project and copy `.env.example` to `.env`.
+2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env`.
+3. In Supabase SQL Editor, create the user-owned maps table:
+
+```sql
+create table public.mindmaps (
+	id uuid primary key default gen_random_uuid(),
+	user_id uuid not null references auth.users(id) on delete cascade,
+	title text not null,
+	content text not null,
+	updated_at timestamptz not null default now(),
+	unique (user_id, title)
+);
+
+alter table public.mindmaps enable row level security;
+create policy "Users can manage their own mindmaps"
+	on public.mindmaps for all
+	using (auth.uid() = user_id)
+	with check (auth.uid() = user_id);
+```
+
+The app provides email/password sign-up and sign-in, loads the signed-in user's maps, and saves the current Markdown outline with **Save map**. Keep the Supabase anon key in the frontend environment only; never expose a service-role key.
+
 ## Local AI testing
 
 1. Copy `.env.example` to `.env`.

@@ -1,0 +1,202 @@
+{
+  "communities": {
+    "0": [
+      "src_app",
+      "src_app_app",
+      "src_app_dropline",
+      "src_app_droppreview",
+      "src_app_item",
+      "src_app_mapfiles",
+      "src_app_markdowneditor",
+      "src_app_markdownfiles",
+      "src_app_mindmap",
+      "src_app_mindnode",
+      "src_app_mindnodetypes",
+      "src_app_palette",
+      "src_app_parsemarkdown",
+      "src_app_prompttiming",
+      "src_app_tomarkdown",
+      "src_app_wrapped",
+      "src_main"
+    ],
+    "1": [
+      "dotenv",
+      "express",
+      "lucide_react",
+      "package_dependencies",
+      "package_dependencies_dotenv",
+      "package_dependencies_express",
+      "package_dependencies_lucide_react",
+      "package_dependencies_react",
+      "package_dependencies_react_dom",
+      "package_dependencies_supabase_supabase_js",
+      "package_dependencies_xyflow_react",
+      "react",
+      "react_dom",
+      "supabase_supabase_js",
+      "xyflow_react"
+    ],
+    "2": [
+      "tsconfig_compileroptions",
+      "tsconfig_compileroptions_allowjs",
+      "tsconfig_compileroptions_allowsyntheticdefaultimports",
+      "tsconfig_compileroptions_esmoduleinterop",
+      "tsconfig_compileroptions_forceconsistentcasinginfilenames",
+      "tsconfig_compileroptions_isolatedmodules",
+      "tsconfig_compileroptions_jsx",
+      "tsconfig_compileroptions_module",
+      "tsconfig_compileroptions_moduleresolution",
+      "tsconfig_compileroptions_noemit",
+      "tsconfig_compileroptions_resolvejsonmodule",
+      "tsconfig_compileroptions_skiplibcheck",
+      "tsconfig_compileroptions_strict",
+      "tsconfig_compileroptions_target",
+      "tsconfig_compileroptions_usedefineforclassfields"
+    ],
+    "3": [
+      "concurrently",
+      "package_devdependencies",
+      "package_devdependencies_concurrently",
+      "package_devdependencies_types_react",
+      "package_devdependencies_types_react_dom",
+      "package_devdependencies_typescript",
+      "package_devdependencies_vite",
+      "package_devdependencies_vitejs_plugin_react",
+      "types_react",
+      "types_react_dom",
+      "typescript",
+      "vite",
+      "vitejs_plugin_react"
+    ],
+    "4": [
+      "package",
+      "package_name",
+      "package_private",
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_dev",
+      "package_scripts_dev_client",
+      "package_scripts_dev_server",
+      "package_scripts_preview",
+      "package_scripts_start",
+      "package_type",
+      "package_version"
+    ],
+    "5": [
+      "server",
+      "server_app",
+      "server_filesdir",
+      "server_mappath",
+      "server_root"
+    ],
+    "6": [
+      "src_lib_supabase",
+      "src_lib_supabase_issupabaseconfigured",
+      "src_lib_supabase_supabase",
+      "src_lib_supabase_supabaseanonkey",
+      "src_lib_supabase_supabaseurl"
+    ],
+    "7": [
+      "vercel",
+      "vercel_buildcommand",
+      "vercel_outputdirectory",
+      "vercel_rewrites",
+      "vercel_version"
+    ],
+    "8": [
+      "ref_dom",
+      "ref_dom_iterable",
+      "ref_es2020",
+      "tsconfig_compileroptions_lib"
+    ],
+    "9": [
+      "ref_src",
+      "tsconfig",
+      "tsconfig_include",
+      "tsconfig_references"
+    ],
+    "10": [
+      "api_index",
+      "api_index_handler",
+      "api_index_json"
+    ],
+    "11": [
+      "src_vite_env_d"
+    ],
+    "12": [
+      "vite_config"
+    ]
+  },
+  "cohesion": {
+    "0": 0.14705882352941177,
+    "1": 0.13333333333333333,
+    "2": 0.13333333333333333,
+    "3": 0.15384615384615385,
+    "4": 0.16666666666666666,
+    "5": 0.4,
+    "6": 0.4,
+    "7": 0.4,
+    "8": 0.5,
+    "9": 0.5,
+    "10": 1.0,
+    "11": 1.0,
+    "12": 1.0
+  },
+  "gods": [
+    {
+      "id": "tsconfig_compileroptions",
+      "label": "compilerOptions",
+      "degree": 16
+    },
+    {
+      "id": "package_scripts",
+      "label": "scripts",
+      "degree": 7
+    },
+    {
+      "id": "src_app_app",
+      "label": "App()",
+      "degree": 4
+    },
+    {
+      "id": "tsconfig_compileroptions_lib",
+      "label": "lib",
+      "degree": 4
+    },
+    {
+      "id": "api_index_json",
+      "label": "json()",
+      "degree": 2
+    },
+    {
+      "id": "api_index_handler",
+      "label": "handler()",
+      "degree": 2
+    },
+    {
+      "id": "package_dependencies_supabase_supabase_js",
+      "label": "@supabase/supabase-js",
+      "degree": 2
+    },
+    {
+      "id": "package_dependencies_xyflow_react",
+      "label": "@xyflow/react",
+      "degree": 2
+    },
+    {
+      "id": "package_dependencies_dotenv",
+      "label": "dotenv",
+      "degree": 2
+    },
+    {
+      "id": "package_dependencies_express",
+      "label": "express",
+      "degree": 2
+    }
+  ],
+  "surprises": [],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}
