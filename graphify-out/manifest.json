@@ -1,0 +1,80 @@
+{
+  "api/index.mjs": {
+    "mtime": 1786957910.4240255,
+    "seen": 1787056859.5267513,
+    "ast_hash": "db12adc505c15c51de498fcceb2e04e8",
+    "semantic_hash": "db12adc505c15c51de498fcceb2e04e8"
+  },
+  "package.json": {
+    "mtime": 1787054533.1455338,
+    "seen": 1787056859.5267558,
+    "ast_hash": "e79b7077d3d37756584a4c779bbbba80",
+    "semantic_hash": "e79b7077d3d37756584a4c779bbbba80"
+  },
+  "server.mjs": {
+    "mtime": 1786957910.4250255,
+    "seen": 1787056859.526758,
+    "ast_hash": "f095549c701db31f12ebec929e89cfdf",
+    "semantic_hash": "f095549c701db31f12ebec929e89cfdf"
+  },
+  "src/App.tsx": {
+    "mtime": 1787056561.7775705,
+    "seen": 1787056859.5267591,
+    "ast_hash": "4f5695642baf5626fc0edab35fc1a290",
+    "semantic_hash": ""
+  },
+  "src/lib/supabase.ts": {
+    "mtime": 1787054557.3145342,
+    "seen": 1787056859.5267603,
+    "ast_hash": "dcddea72eacdc4a9609ab5195794881c",
+    "semantic_hash": "dcddea72eacdc4a9609ab5195794881c"
+  },
+  "src/main.tsx": {
+    "mtime": 1786957910.4250255,
+    "seen": 1787056859.5267615,
+    "ast_hash": "68763f593771bf09162ce67876b0db46",
+    "semantic_hash": "68763f593771bf09162ce67876b0db46"
+  },
+  "src/vite-env.d.ts": {
+    "mtime": 1786957910.4250255,
+    "seen": 1787056859.5267625,
+    "ast_hash": "db266f67270495e5478804f291146e99",
+    "semantic_hash": "db266f67270495e5478804f291146e99"
+  },
+  "tsconfig.json": {
+    "mtime": 1786957910.4250255,
+    "seen": 1787056859.5267634,
+    "ast_hash": "f373b38d73702f46f4ceeeb20c5f1f06",
+    "semantic_hash": "f373b38d73702f46f4ceeeb20c5f1f06"
+  },
+  "vercel.json": {
+    "mtime": 1786957910.4250255,
+    "seen": 1787056859.5267649,
+    "ast_hash": "bcdcac5a5193fa022d6e5ad8ab91692c",
+    "semantic_hash": "bcdcac5a5193fa022d6e5ad8ab91692c"
+  },
+  "vite.config.ts": {
+    "mtime": 1786957910.4260256,
+    "seen": 1787056859.526766,
+    "ast_hash": "5c3b7e3e2c05050425a98e102a48b2d2",
+    "semantic_hash": "5c3b7e3e2c05050425a98e102a48b2d2"
+  },
+  ".github/copilot-instructions.md": {
+    "mtime": 1786957910.4230256,
+    "seen": 1787056859.5267673,
+    "ast_hash": "8b1bc6c97aaf0d1ff7f098d78aafe930",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1787055358.7715487,
+    "seen": 1787056859.5267687,
+    "ast_hash": "692f5500fcf5d728b9d67b604c4d2a00",
+    "semantic_hash": ""
+  },
+  "index.html": {
+    "mtime": 1786957910.4240255,
+    "seen": 1787056859.5267696,
+    "ast_hash": "6c5ab8b4502c17cdf017b75b84f3e9fe",
+    "semantic_hash": ""
+  }
+}

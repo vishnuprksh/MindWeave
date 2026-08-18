@@ -1,0 +1,15 @@
+{
+  "0": "App.tsx",
+  "1": "dependencies",
+  "2": "compilerOptions",
+  "3": "devDependencies",
+  "4": "package.json",
+  "5": "server.mjs",
+  "6": "Deploy to Vercel",
+  "7": "vercel.json",
+  "8": "lib",
+  "9": "copilot-instructions.md",
+  "10": "index.mjs",
+  "11": "vite-env.d.ts",
+  "12": "vite.config.ts"
+}
